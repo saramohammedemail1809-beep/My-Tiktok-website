@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Matcher - Edit Your Current Matches</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #1a202c;
+            color: white;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+            color: #34D399;
+            margin-bottom: 30px;
+        }
+        .stats {
+            background: #2d3748;
+            border: 1px solid #4a5568;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .stats h3 {
+            color: #34D399;
+            margin-top: 0;
+        }
+        .video-item {
+            background: #2d3748;
+            border: 1px solid #4a5568;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .video-title {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #34D399;
+        }
+        .video-description {
+            color: #a0aec0;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+        .image-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 8px;
+            margin-top: 15px;
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #4a5568;
+            padding: 15px;
+            border-radius: 8px;
+            background: #1a202c;
+        }
+        .image-option {
+            width: 80px;
+            height: 60px;
+            border: 2px solid #4a5568;
+            border-radius: 5px;
+            cursor: pointer;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            background: #2d3748;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .image-option:hover {
+            border-color: #34D399;
+            transform: scale(1.05);
+        }
+        .image-option.selected {
+            border-color: #34D399;
+            box-shadow: 0 0 10px rgba(52, 211, 153, 0.5);
+        }
+        .image-option img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .image-option .placeholder {
+            color: #a0aec0;
+            font-size: 10px;
+            text-align: center;
+            padding: 5px;
+        }
+        .save-button {
+            background: #34D399;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 20px auto;
+            display: block;
+            transition: all 0.3s ease;
+        }
+        .save-button:hover {
+            background: #22C55E;
+            transform: translateY(-2px);
+        }
+        .instructions {
+            background: #2d3748;
+            border: 1px solid #4a5568;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        .instructions h3 {
+            color: #34D399;
+            margin-top: 0;
+        }
+        .instructions ol {
+            color: #a0aec0;
+            line-height: 1.6;
+        }
+        .selected-display {
+            background: #1a202c;
+            border: 2px solid #34D399;
+            border-radius: 8px;
+            padding: 8px;
+            margin-top: 10px;
+            text-align: center;
+            color: #34D399;
+            font-weight: bold;
+            font-size: 12px;
+        }
+        .progress-bar {
+            background: #4a5568;
+            border-radius: 10px;
+            height: 20px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+        .progress-fill {
+            background: linear-gradient(90deg, #34D399, #22C55E);
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        .current-match {
+            background: #1a202c;
+            border: 2px solid #22C55E;
+            border-radius: 8px;
+            padding: 8px;
+            margin-top: 10px;
+            text-align: center;
+            color: #22C55E;
+            font-weight: bold;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎬 Image Matcher - Edit Your Current Matches</h1>
+        
+        <div class="stats">
+            <h3>📊 Current Matches</h3>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress-fill"></div>
+            </div>
+            <p id="progress-text">Loading current matches...</p>
+        </div>
+        
+        <div class="instructions">
+            <h3>📋 Instructions:</h3>
+            <ol>
+                <li>Your current matches are already loaded and highlighted in green</li>
+                <li>Click on different images to change any video's cover</li>
+                <li>Click on the same image again to remove the cover (shows 🎬)</li>
+                <li>Click "Save Changes" when you're done editing</li>
+                <li>I'll update your website with the new matches!</li>
+            </ol>
+        </div>
+
+        <div id="video-container">
+            <!-- Videos will be loaded here -->
+        </div>
+
+        <button class="save-button" onclick="saveMatches()">💾 Save Changes</button>
+    </div>
+
+    <script>
+        // Your complete video data with current matches (50 videos total)
+        const videoData = [
+            {
+                title: "3 Universities that give 100% scholarships to international students",
+                description: "If you're thinking of studying in America as an international student but cannot afford it watch this",
+                emoji: "💰",
+                cover: "WhatsApp Image 2025-09-04 at 6.47.22 PM (1).jpeg"
+            },
+            {
+                title: "3 Universities that give 100% scholarships to international students",
+                description: "If you're thinking of studying in America as an international student but cannot afford it watch this",
+                emoji: "💰",
+                cover: "WhatsApp Image 2025-09-04 at 6.47.22 PM (2).jpeg"
+            },
+            {
+                title: "10 Universities that give 100% scholarships to international students",
+                description: "If you're thinking of studying in America as an international student but cannot afford it watch this",
+                emoji: "💎",
+                cover: "WhatsApp Image 2025-09-04 at 6.47.23 PM.jpeg"
+            },
+            {
+                title: "3 Universities that give 100% scholarships to international students",
+                description: "If you're thinking of studying in America as an international student but cannot afford it watch this",
+                emoji: "💰",
+                cover: "WhatsApp Image 2025-09-04 at 6.47.23 PM (1).jpeg"
+            },
+            {
+                title: "Do this if you want a full scholarship to study in America",
+                description: "If you're thinking of studying in America as an international student but cannot afford it watch this",
+                emoji: "🚀",
+                cover: "WhatsApp Image 2025-09-04 at 6.47.23 PM (2).jpeg"
+            },
+            {
+                title: "100% scholarship to study in California USA as an international student",
+                description: "If you're thinking of studying in America as an international student but cannot afford it watch this",
+                emoji: "☀️",
+                cover: "WhatsApp Image 2025-09-04 at 6.47.23 PM (3).jpeg"
+            },
+            {
+                title: "3 steps to get 100% scholarship to study in America",
+                description: "If you're thinking of studying in America as an international student but cannot afford it watch this",
+                emoji: "✅",
+                cover: "WhatsApp Image 2025-09-04 at 6.47.23 PM (4).jpeg"
+            },
+            {
+                title: "This is how you can study for FREE in America as an international student",
+                description: "If you're thinking of studying in America as an international student but cannot afford it watch this",
+                emoji: "🎉",
+                cover: "WhatsApp Image 2025-09-04 at 6.47.23 PM (5).jpeg"
+            },
+            {
+                title: "This college gives international students 100% scholarships to study in USA",
+                description: "If you're thinking of studying in America as an international student but cannot afford it watch this",
+                emoji: "💯",
+                cover: "WhatsApp Image 2025-09-04 at 6.47.24 PM.jpeg"
+            },
+            {
+                title: "Full scholarship to study in America",
+                description: "If you're thinking of studying in America as an international student but cannot afford it watch this",
+                emoji: "🎓",
+                cover: "WhatsApp Image 2025-09-04 at 6.47.24 PM (1).jpeg"
+            },
+            {
+                title: "This university gives international students 100% scholarships",
+                description: "If you're thinking of studying in America as an international student but cannot afford it watch this",
+                emoji: "🏛️",
+                cover: "WhatsApp Image 2025-09-04 at 6.47.24 PM (2).jpeg"
+            },
+            {
+                title: "5 schools that are tuition free for international students",
+                description: "If you're thinking of studying in America as an international student but cannot afford it watch this",
+                emoji: "🏫",
+                cover: "WhatsApp Image 2025-09-05 at 2.50.51 AM (1).jpeg"
+            },
+            {
+                title: "10 schools that give 100% scholarships to international students",
+                description: "If you're thinking of studying in America as an international student but cannot afford it watch this",
+                emoji: "💎",
+                cover: "WhatsApp Image 2025-09-04 at 6.47.24 PM (3).jpeg"
+            },
+            {
+                title: "Big scholarships in america for international students",
+                description: "If you're thinking of studying in America as an international student but cannot afford it watch this",
+                emoji: "💰",
+                cover: "WhatsApp Image 2025-09-04 at 6.47.24 PM (4).jpeg"
+            },
+            {
+                title: "This university will give you a scholarship to study in the Usa if you dont have the money",
+                description: "If you're thinking of studying in America as an international student but cannot afford it watch this",
+                emoji: "🎓",
+                cover: "WhatsApp Image 2025-09-04 at 6.47.24 PM (5).jpeg"
+            },
+            {
+                title: "This U.S university is FREE if your parents make under 100k$",
+                description: "If you're thinking of studying in America as an international student but cannot afford it watch this",
+                emoji: "🆓",
+                cover: "WhatsApp Image 2025-09-04 at 6.47.25 PM.jpeg"
+            },
+            {
+                title: "Masters in Nursing scholarships for international students",
+                description: "If you're thinking of studying in America as an international student but cannot afford it watch this",
+                emoji: "🏥",
+                cover: "WhatsApp Image 2025-09-04 at 6.47.25 PM (1).jpeg"
+            },
+            {
+                title: "These 3 universities give Nursing scholarships to international students",
+                description: "If you're thinking of studying in America as an international student but cannot afford it watch this",
+                emoji: "🏥",
+                cover: "WhatsApp Image 2025-09-04 at 6.47.25 PM (2).jpeg"
+            },
+            {
+                title: "Funding to study in America as an international student",
+                description: "If you're thinking of studying in America as an international student but cannot afford it watch this",
+                emoji: "💰",
+                cover: "WhatsApp Image 2025-09-04 at 6.47.25 PM (3).jpeg"
+            },
+            {
+                title: "This university gave me a full scholarship as an international student",
+                description: "If you're thinking of studying in America as an international student but cannot afford it watch this",
+                emoji: "🎓",
+                cover: "WhatsApp Image 2025-09-04 at 6.47.21 PM (1).jpeg"
+            },
+            {
+                title: "This college gives big scholarships to international students",
+                description: "If you're thinking of studying in America as an international student but cannot afford it watch this",
+                emoji: "🏫",
+                cover: "WhatsApp Image 2025-09-04 at 6.47.25 PM (4).jpeg"
+            },
+            {
+                title: "This is a full scholarship for international students",
+                description: "If you're thinking of studying in America as an international student but cannot afford it watch this",
+                emoji: "🎓",
+                cover: "WhatsApp Image 2025-09-04 at 6.47.25 PM (5).jpeg"
+            },
+            {
+                title: "Full scholarship to study in America",
+                description: "If you're thinking of studying in America as an international student but cannot afford it watch this",
+                emoji: "🇺🇸",
+                cover: "WhatsApp Image 2025-09-04 at 6.47.21 PM.jpeg"
+            },
+            {
+                title: "This university gives scholarships to international students",
+                description: "If you're thinking of studying in America as an international student but cannot afford it watch this",
+                emoji: "🏛️",
+                cover: "WhatsApp Image 2025-09-04 at 6.47.26 PM.jpeg"
+            },
+            {
+                title: "This American college gives international students full scholarships",
+                description: "If you're thinking of studying in America as an international student but cannot afford it watch this",
+                emoji: "🏫",
+                cover: "WhatsApp Image 2025-09-04 at 6.47.26 PM (1).jpeg"
+            },
+            {
+                title: "This college gives 80k$ scholarships per year to international students in America",
+                description: "If you're thinking of studying in America as an international student but cannot afford it watch this",
+                emoji: "💰",
+                cover: "WhatsApp Image 2025-09-04 at 6.47.26 PM (2).jpeg"
+            },
+            {
+                title: "This US college gives scholarships to international students and doesnt require English Proficincy Exams",
+                description: "If you're thinking of studying in America as an international student but cannot afford it watch this",
+                emoji: "🇺🇸",
+                cover: "WhatsApp Image 2025-09-04 at 6.47.26 PM (3).jpeg"
+            },
+            {
+                title: "This school gives you 100% funding to study in America",
+                description: "If you're thinking of studying in America as an international student but cannot afford it watch this",
+                emoji: "🎓",
+                cover: "WhatsApp Image 2025-09-04 at 6.47.26 PM (4).jpeg"
+            },
+            {
+                title: "This is how you get a scholarship to study in America",
+                description: "If you're thinking of studying in America as an international student but cannot afford it watch this",
+                emoji: "🎯",
+                cover: "WhatsApp Image 2025-09-04 at 6.47.26 PM (5).jpeg"
+            },
+            {
+                title: "This American college gives full scholarships to international students",
+                description: "If you're thinking of studying in America as an international student but cannot afford it watch this",
+                emoji: "🏫",
+                cover: "WhatsApp Image 2025-09-04 at 6.47.27 PM.jpeg"
+            },
+            {
+                title: "This university offers full scholarships to international students",
+                description: "If you're thinking of studying in America as an international student but cannot afford it watch this",
+                emoji: "🏛️",
+                cover: "WhatsApp Image 2025-09-04 at 6.47.27 PM (1).jpeg"
+            },
+            {
+                title: "Study online for free at an American university",
+                description: "If you're thinking of studying in America as an international student but cannot afford it watch this",
+                emoji: "💻",
+                cover: "WhatsApp Image 2025-09-04 at 6.47.27 PM (2).jpeg"
+            },
+            {
+                title: "If you want to study in America then this university will give you a guaranteed scholarship",
+                description: "If you're thinking of studying in America as an international student but cannot afford it watch this",
+                emoji: "🎓",
+                cover: "WhatsApp Image 2025-09-04 at 6.47.27 PM (3).jpeg"
+            },
+            {
+                title: "Those 2 universities offer full tuition scholarships to international students",
+                description: "If you're thinking of studying in America as an international student but cannot afford it watch this",
+                emoji: "🏛️",
+                cover: "WhatsApp Image 2025-09-04 at 6.47.19 PM.jpeg"
+            },
+            {
+                title: "Want to study in the USA but worried about money?",
+                description: "If you're thinking of studying in America as an international student but cannot afford it watch this",
+                emoji: "💰",
+                cover: "WhatsApp Image 2025-09-05 at 2.50.51 AM.jpeg"
+            },
+            {
+                title: "This U.S university lets anyone get a degree for FREE",
+                description: "If you're thinking of studying in America as an international student but cannot afford it watch this",
+                emoji: "🆓",
+                cover: "WhatsApp Image 2025-09-04 at 6.47.27 PM (4).jpeg"
+            },
+            {
+                title: "This is how you get funding for your masters degree in America as an international student",
+                description: "If you're thinking of studying in America as an international student but cannot afford it watch this",
+                emoji: "🎓",
+                cover: "WhatsApp Image 2025-09-04 at 6.47.28 PM.jpeg"
+            },
+            {
+                title: "This is how you can get free tuition as an international student in America",
+                description: "If you're thinking of studying in America as an international student but cannot afford it watch this",
+                emoji: "🆓",
+                cover: "WhatsApp Image 2025-09-04 at 6.47.28 PM (1).jpeg"
+            },
+            {
+                title: "This is how you can study for free in America",
+                description: "If you're thinking of studying in America as an international student but cannot afford it watch this",
+                emoji: "🇺🇸",
+                cover: "WhatsApp Image 2025-09-04 at 6.47.28 PM (3).jpeg"
+            },
+            {
+                title: "I wish i knew this when i started college as an international student",
+                description: "If you're thinking of studying in America as an international student but cannot afford it watch this",
+                emoji: "💡",
+                cover: "WhatsApp Image 2025-09-04 at 6.47.28 PM (2).jpeg"
+            },
+            {
+                title: "This is how you can study in America for free",
+                description: "If you're thinking of studying in America as an international student but cannot afford it watch this",
+                emoji: "🎓",
+                cover: "WhatsApp Image 2025-09-05 at 2.51.00 AM.jpeg"
+            },
+            {
+                title: "This will save you 50k$+ as an international student",
+                description: "If you're thinking of studying in America as an international student but cannot afford it watch this",
+                emoji: "💰",
+                cover: "WhatsApp Image 2025-09-04 at 6.47.28 PM (4).jpeg"
+            },
+            {
+                title: "If you're thinking of studying in America listen to this...",
+                description: "If you're thinking of studying in America as an international student but cannot afford it watch this",
+                emoji: "🎧",
+                cover: "WhatsApp Image 2025-09-04 at 6.47.28 PM (5).jpeg"
+            },
+            {
+                title: "This is one of the best things you can do as an international student",
+                description: "If you're thinking of studying in America as an international student but cannot afford it watch this",
+                emoji: "⭐",
+                cover: "WhatsApp Image 2025-09-04 at 6.47.29 PM.jpeg"
+            },
+            {
+                title: "If youre an international student you need to hear this",
+                description: "If you're thinking of studying in America as an international student but cannot afford it watch this",
+                emoji: "🎧",
+                cover: "WhatsApp Image 2025-09-04 at 6.47.29 PM (1).jpeg"
+            },
+            {
+                title: "the truth about visa sponsorship",
+                description: "If you're thinking of studying in America as an international student but cannot afford it watch this",
+                emoji: "📋",
+                cover: "WhatsApp Image 2025-09-04 at 6.47.29 PM (2).jpeg"
+            },
+            {
+                title: "If youre an international student,heres the truth",
+                description: "If you're thinking of studying in America as an international student but cannot afford it watch this",
+                emoji: "💡",
+                cover: "WhatsApp Image 2025-09-04 at 6.47.29 PM (3).jpeg"
+            },
+            {
+                title: "Listen to this if youre an international student...",
+                description: "If you're thinking of studying in America as an international student but cannot afford it watch this",
+                emoji: "🎧",
+                cover: "WhatsApp Image 2025-09-04 at 6.47.29 PM (4).jpeg"
+            },
+            {
+                title: "If youre thinking of studying in America listen to this...",
+                description: "If you're thinking of studying in America as an international student but cannot afford it watch this",
+                emoji: "🎧",
+                cover: "WhatsApp Image 2025-09-04 at 6.47.29 PM (5).jpeg"
+            },
+            {
+                title: "For international students",
+                description: "If you're thinking of studying in America as an international student but cannot afford it watch this",
+                emoji: "🌍",
+                cover: "WhatsApp Image 2025-09-04 at 6.47.19 PM.jpeg"
+            }
+        ];
+
+        // Available images (all 51 images including new ones)
+        const availableImages = [
+            "Screenshot (61).png",
+            "WhatsApp Image 2025-09-04 at 6.47.19 PM.jpeg",
+            "WhatsApp Image 2025-09-04 at 6.47.21 PM (1).jpeg",
+            "WhatsApp Image 2025-09-04 at 6.47.21 PM.jpeg",
+            "WhatsApp Image 2025-09-04 at 6.47.22 PM (1).jpeg",
+            "WhatsApp Image 2025-09-04 at 6.47.22 PM (2).jpeg",
+            "WhatsApp Image 2025-09-04 at 6.47.22 PM.jpeg",
+            "WhatsApp Image 2025-09-04 at 6.47.23 PM (1).jpeg",
+            "WhatsApp Image 2025-09-04 at 6.47.23 PM (2).jpeg",
+            "WhatsApp Image 2025-09-04 at 6.47.23 PM (3).jpeg",
+            "WhatsApp Image 2025-09-04 at 6.47.23 PM (4).jpeg",
+            "WhatsApp Image 2025-09-04 at 6.47.23 PM (5).jpeg",
+            "WhatsApp Image 2025-09-04 at 6.47.23 PM.jpeg",
+            "WhatsApp Image 2025-09-04 at 6.47.24 PM (1).jpeg",
+            "WhatsApp Image 2025-09-04 at 6.47.24 PM (2).jpeg",
+            "WhatsApp Image 2025-09-04 at 6.47.24 PM (3).jpeg",
+            "WhatsApp Image 2025-09-04 at 6.47.24 PM (4).jpeg",
+            "WhatsApp Image 2025-09-04 at 6.47.24 PM (5).jpeg",
+            "WhatsApp Image 2025-09-04 at 6.47.24 PM.jpeg",
+            "WhatsApp Image 2025-09-04 at 6.47.25 PM (1).jpeg",
+            "WhatsApp Image 2025-09-04 at 6.47.25 PM (2).jpeg",
+            "WhatsApp Image 2025-09-04 at 6.47.25 PM (3).jpeg",
+            "WhatsApp Image 2025-09-04 at 6.47.25 PM (4).jpeg",
+            "WhatsApp Image 2025-09-04 at 6.47.25 PM (5).jpeg",
+            "WhatsApp Image 2025-09-04 at 6.47.25 PM.jpeg",
+            "WhatsApp Image 2025-09-04 at 6.47.26 PM (1).jpeg",
+            "WhatsApp Image 2025-09-04 at 6.47.26 PM (2).jpeg",
+            "WhatsApp Image 2025-09-04 at 6.47.26 PM (3).jpeg",
+            "WhatsApp Image 2025-09-04 at 6.47.26 PM (4).jpeg",
+            "WhatsApp Image 2025-09-04 at 6.47.26 PM (5).jpeg",
+            "WhatsApp Image 2025-09-04 at 6.47.26 PM.jpeg",
+            "WhatsApp Image 2025-09-04 at 6.47.27 PM (1).jpeg",
+            "WhatsApp Image 2025-09-04 at 6.47.27 PM (2).jpeg",
+            "WhatsApp Image 2025-09-04 at 6.47.27 PM (3).jpeg",
+            "WhatsApp Image 2025-09-04 at 6.47.27 PM (4).jpeg",
+            "WhatsApp Image 2025-09-04 at 6.47.27 PM.jpeg",
+            "WhatsApp Image 2025-09-04 at 6.47.28 PM (1).jpeg",
+            "WhatsApp Image 2025-09-04 at 6.47.28 PM (2).jpeg",
+            "WhatsApp Image 2025-09-04 at 6.47.28 PM (3).jpeg",
+            "WhatsApp Image 2025-09-04 at 6.47.28 PM (4).jpeg",
+            "WhatsApp Image 2025-09-04 at 6.47.28 PM (5).jpeg",
+            "WhatsApp Image 2025-09-04 at 6.47.28 PM.jpeg",
+            "WhatsApp Image 2025-09-04 at 6.47.29 PM (1).jpeg",
+            "WhatsApp Image 2025-09-04 at 6.47.29 PM (2).jpeg",
+            "WhatsApp Image 2025-09-04 at 6.47.29 PM (3).jpeg",
+            "WhatsApp Image 2025-09-04 at 6.47.29 PM (4).jpeg",
+            "WhatsApp Image 2025-09-04 at 6.47.29 PM (5).jpeg",
+            "WhatsApp Image 2025-09-04 at 6.47.29 PM.jpeg",
+            "WhatsApp Image 2025-09-05 at 2.50.51 AM (1).jpeg",
+            "WhatsApp Image 2025-09-05 at 2.50.51 AM.jpeg",
+            "WhatsApp Image 2025-09-05 at 2.51.00 AM.jpeg"
+        ];
+
+        let selectedImages = {};
+
+        function loadVideos() {
+            const container = document.getElementById('video-container');
+            container.innerHTML = '';
+            
+            videoData.forEach((video, index) => {
+                const videoItem = document.createElement('div');
+                videoItem.className = 'video-item';
+                
+                // Find the current selected image index
+                let currentImageIndex = -1;
+                if (video.cover && video.cover !== '🎬') {
+                    currentImageIndex = availableImages.indexOf(video.cover);
+                }
+                
+                videoItem.innerHTML = `
+                    <div class="video-title">${video.emoji} ${video.title}</div>
+                    <div class="video-description">${video.description}</div>
+                    <div class="image-grid" id="images-${index}">
+                        ${availableImages.map((img, imgIndex) => `
+                            <div class="image-option ${currentImageIndex === imgIndex ? 'selected' : ''}" onclick="selectImage(${index}, '${img}', ${imgIndex})" id="option-${index}-${imgIndex}">
+                                <img src="${img}" alt="Cover ${imgIndex + 1}" onerror="this.parentElement.innerHTML='<div class=\'placeholder\'>Image ${imgIndex + 1}</div>'">
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div class="current-match" id="current-${index}">
+                        Current: ${video.cover === '🎬' ? 'No cover (🎬)' : video.cover.split('/').pop()}
+                    </div>
+                    <div class="selected-display" id="selected-${index}" style="display: none;">
+                        No image selected
+                    </div>
+                `;
+                container.appendChild(videoItem);
+                
+                // Set the current selection
+                if (currentImageIndex !== -1) {
+                    selectedImages[index] = video.cover;
+                }
+            });
+            
+            updateProgress();
+        }
+
+        function selectImage(videoIndex, imagePath, imgIndex) {
+            const currentSelection = selectedImages[videoIndex];
+            
+            // If clicking the same image, remove the selection
+            if (currentSelection === imagePath) {
+                selectedImages[videoIndex] = '🎬';
+                imagePath = '🎬';
+            } else {
+                selectedImages[videoIndex] = imagePath;
+            }
+            
+            // Update the selected image display
+            const selector = document.getElementById(`selected-${videoIndex}`);
+            const currentMatch = document.getElementById(`current-${videoIndex}`);
+            
+            if (imagePath === '🎬') {
+                selector.style.display = 'none';
+                currentMatch.textContent = 'Current: No cover (🎬)';
+                currentMatch.style.borderColor = '#4a5568';
+                currentMatch.style.color = '#a0aec0';
+            } else {
+                selector.textContent = `Selected: ${imagePath.split('/').pop()}`;
+                selector.style.display = 'block';
+                currentMatch.textContent = `Current: ${imagePath.split('/').pop()}`;
+                currentMatch.style.borderColor = '#22C55E';
+                currentMatch.style.color = '#22C55E';
+            }
+            
+            // Update visual selection
+            const imageGrid = document.getElementById(`images-${videoIndex}`);
+            const options = imageGrid.querySelectorAll('.image-option');
+            options.forEach((option, index) => {
+                option.classList.toggle('selected', index === imgIndex);
+            });
+            
+            updateProgress();
+        }
+
+        function updateProgress() {
+            const matchedCount = Object.keys(selectedImages).length;
+            const totalVideos = videoData.length;
+            const percentage = (matchedCount / totalVideos) * 100;
+            
+            document.getElementById('progress-fill').style.width = percentage + '%';
+            document.getElementById('progress-text').textContent = `${matchedCount} of ${totalVideos} videos have covers`;
+        }
+
+        function saveMatches() {
+            if (Object.keys(selectedImages).length === 0) {
+                alert('Please select at least one image before saving!');
+                return;
+            }
+            
+            console.log('Selected Images:', selectedImages);
+            
+            // Create the updated video data
+            const updatedVideoData = videoData.map((video, index) => ({
+                ...video,
+                cover: selectedImages[index] || '🎬'
+            }));
+            
+            // Display the results
+            let resultText = '✅ Changes saved!\n\n';
+            Object.entries(selectedImages).forEach(([index, image]) => {
+                const videoTitle = videoData[parseInt(index)].title.substring(0, 50);
+                const imageName = image === '🎬' ? 'No cover' : image.split('/').pop();
+                resultText += `Video ${parseInt(index) + 1}: ${videoTitle}... → ${imageName}\n`;
+            });
+            
+            alert(resultText);
+            
+            // Copy to clipboard
+            const jsonData = JSON.stringify(updatedVideoData, null, 2);
+            navigator.clipboard.writeText(jsonData).then(() => {
+                alert('📋 Updated video data copied to clipboard! Send this to me and I\'ll update your website.');
+            }).catch(() => {
+                // Fallback for browsers that don't support clipboard API
+                const textArea = document.createElement('textarea');
+                textArea.value = jsonData;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                alert('📋 Updated video data copied to clipboard! Send this to me and I\'ll update your website.');
+            });
+        }
+
+        // Load videos when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            loadVideos();
+        });
+    </script>
+</body>
+</html>

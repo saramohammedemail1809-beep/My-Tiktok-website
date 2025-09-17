@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Matcher - Match Covers to Videos</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #1a202c;
+            color: white;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+            color: #34D399;
+            margin-bottom: 30px;
+        }
+        .video-item {
+            background: #2d3748;
+            border: 1px solid #4a5568;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .video-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #34D399;
+        }
+        .video-description {
+            color: #a0aec0;
+            margin-bottom: 15px;
+        }
+        .image-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #4a5568;
+            padding: 15px;
+            border-radius: 8px;
+            background: #1a202c;
+        }
+        .image-option {
+            width: 100px;
+            height: 80px;
+            border: 2px solid #4a5568;
+            border-radius: 5px;
+            cursor: pointer;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            background: #2d3748;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .image-option:hover {
+            border-color: #34D399;
+            transform: scale(1.05);
+        }
+        .image-option.selected {
+            border-color: #34D399;
+            box-shadow: 0 0 10px rgba(52, 211, 153, 0.5);
+        }
+        .image-option img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .image-option .placeholder {
+            color: #a0aec0;
+            font-size: 12px;
+            text-align: center;
+            padding: 5px;
+        }
+        .save-button {
+            background: #34D399;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 20px auto;
+            display: block;
+            transition: all 0.3s ease;
+        }
+        .save-button:hover {
+            background: #22C55E;
+            transform: translateY(-2px);
+        }
+        .instructions {
+            background: #2d3748;
+            border: 1px solid #4a5568;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        .instructions h3 {
+            color: #34D399;
+            margin-top: 0;
+        }
+        .instructions ol {
+            color: #a0aec0;
+            line-height: 1.6;
+        }
+        .selected-display {
+            background: #1a202c;
+            border: 2px solid #34D399;
+            border-radius: 8px;
+            padding: 10px;
+            margin-top: 10px;
+            text-align: center;
+            color: #34D399;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎬 Image Matcher - Match Covers to Videos</h1>
+        
+        <div class="instructions">
+            <h3>📋 Instructions:</h3>
+            <ol>
+                <li>Look at each video title and description</li>
+                <li>Click on the image that best matches that video's content</li>
+                <li>Click "Save Matches" when you're done</li>
+                <li>I'll update your website with the correct matches!</li>
+            </ol>
+        </div>
+
+        <div id="video-container">
+            <!-- Videos will be loaded here -->
+        </div>
+
+        <button class="save-button" onclick="saveMatches()">💾 Save Matches</button>
+    </div>
+
+    <script>
+        // Your video data
+        const videoData = [
+            {
+                title: "3 Universities that give 100% scholarships to international students",
+                description: "If you're thinking of studying in America as an international student but cannot afford it watch this",
+                emoji: "💰"
+            },
+            {
+                title: "3 Universities that give 100% scholarships to international students",
+                description: "If you're thinking of studying in America as an international student but cannot afford it watch this",
+                emoji: "💰"
+            },
+            {
+                title: "10 Universities that give 100% scholarships to international students",
+                description: "If you're thinking of studying in America as an international student but cannot afford it watch this",
+                emoji: "💎"
+            },
+            {
+                title: "3 Universities that give 100% scholarships to international students",
+                description: "If you're thinking of studying in America as an international student but cannot afford it watch this",
+                emoji: "💰"
+            },
+            {
+                title: "Do this if you want a full scholarship to study in America",
+                description: "If you're thinking of studying in America as an international student but cannot afford it watch this",
+                emoji: "🚀"
+            },
+            {
+                title: "100% scholarship to study in California USA as an international student",
+                description: "If you're thinking of studying in America as an international student but cannot afford it watch this",
+                emoji: "☀️"
+            },
+            {
+                title: "3 steps to get 100% scholarship to study in America",
+                description: "If you're thinking of studying in America as an international student but cannot afford it watch this",
+                emoji: "✅"
+            },
+            {
+                title: "This is how you can study for FREE in America as an international student",
+                description: "If you're thinking of studying in America as an international student but cannot afford it watch this",
+                emoji: "🎉"
+            }
+        ];
+
+        // Available images
+        const availableImages = [
+            "WhatsApp Image 2025-09-04 at 6.47.19 PM.jpeg",
+            "WhatsApp Image 2025-09-04 at 6.47.21 PM (1).jpeg",
+            "WhatsApp Image 2025-09-04 at 6.47.21 PM.jpeg",
+            "WhatsApp Image 2025-09-04 at 6.47.22 PM (1).jpeg",
+            "WhatsApp Image 2025-09-04 at 6.47.22 PM (2).jpeg",
+            "WhatsApp Image 2025-09-04 at 6.47.22 PM.jpeg",
+            "WhatsApp Image 2025-09-04 at 6.47.23 PM (1).jpeg",
+            "WhatsApp Image 2025-09-04 at 6.47.23 PM (2).jpeg",
+            "WhatsApp Image 2025-09-04 at 6.47.23 PM (3).jpeg",
+            "WhatsApp Image 2025-09-04 at 6.47.23 PM (4).jpeg",
+            "WhatsApp Image 2025-09-04 at 6.47.23 PM (5).jpeg",
+            "WhatsApp Image 2025-09-04 at 6.47.23 PM.jpeg",
+            "WhatsApp Image 2025-09-04 at 6.47.24 PM (1).jpeg",
+            "WhatsApp Image 2025-09-04 at 6.47.24 PM (2).jpeg",
+            "WhatsApp Image 2025-09-04 at 6.47.24 PM (3).jpeg",
+            "WhatsApp Image 2025-09-04 at 6.47.24 PM (4).jpeg",
+            "WhatsApp Image 2025-09-04 at 6.47.24 PM (5).jpeg",
+            "WhatsApp Image 2025-09-04 at 6.47.24 PM.jpeg",
+            "WhatsApp Image 2025-09-04 at 6.47.25 PM (1).jpeg",
+            "WhatsApp Image 2025-09-04 at 6.47.25 PM (2).jpeg",
+            "WhatsApp Image 2025-09-04 at 6.47.25 PM (3).jpeg",
+            "WhatsApp Image 2025-09-04 at 6.47.25 PM (4).jpeg",
+            "WhatsApp Image 2025-09-04 at 6.47.25 PM (5).jpeg",
+            "WhatsApp Image 2025-09-04 at 6.47.25 PM.jpeg",
+            "WhatsApp Image 2025-09-04 at 6.47.26 PM (1).jpeg",
+            "WhatsApp Image 2025-09-04 at 6.47.26 PM (2).jpeg",
+            "WhatsApp Image 2025-09-04 at 6.47.26 PM (3).jpeg",
+            "WhatsApp Image 2025-09-04 at 6.47.26 PM (4).jpeg",
+            "WhatsApp Image 2025-09-04 at 6.47.26 PM (5).jpeg",
+            "WhatsApp Image 2025-09-04 at 6.47.26 PM.jpeg",
+            "WhatsApp Image 2025-09-04 at 6.47.27 PM (1).jpeg",
+            "WhatsApp Image 2025-09-04 at 6.47.27 PM (2).jpeg",
+            "WhatsApp Image 2025-09-04 at 6.47.27 PM (3).jpeg",
+            "WhatsApp Image 2025-09-04 at 6.47.27 PM (4).jpeg",
+            "WhatsApp Image 2025-09-04 at 6.47.27 PM.jpeg",
+            "WhatsApp Image 2025-09-04 at 6.47.28 PM (1).jpeg",
+            "WhatsApp Image 2025-09-04 at 6.47.28 PM (2).jpeg",
+            "WhatsApp Image 2025-09-04 at 6.47.28 PM (3).jpeg",
+            "WhatsApp Image 2025-09-04 at 6.47.28 PM (4).jpeg",
+            "WhatsApp Image 2025-09-04 at 6.47.28 PM (5).jpeg",
+            "WhatsApp Image 2025-09-04 at 6.47.28 PM.jpeg",
+            "WhatsApp Image 2025-09-04 at 6.47.29 PM (1).jpeg",
+            "WhatsApp Image 2025-09-04 at 6.47.29 PM (2).jpeg",
+            "WhatsApp Image 2025-09-04 at 6.47.29 PM (3).jpeg",
+            "WhatsApp Image 2025-09-04 at 6.47.29 PM (4).jpeg",
+            "WhatsApp Image 2025-09-04 at 6.47.29 PM (5).jpeg",
+            "WhatsApp Image 2025-09-04 at 6.47.29 PM.jpeg"
+        ];
+
+        let selectedImages = {};
+
+        function loadVideos() {
+            const container = document.getElementById('video-container');
+            container.innerHTML = '';
+            
+            videoData.forEach((video, index) => {
+                const videoItem = document.createElement('div');
+                videoItem.className = 'video-item';
+                videoItem.innerHTML = `
+                    <div class="video-title">${video.emoji} ${video.title}</div>
+                    <div class="video-description">${video.description}</div>
+                    <div class="image-grid" id="images-${index}">
+                        ${availableImages.map((img, imgIndex) => `
+                            <div class="image-option" onclick="selectImage(${index}, '${img}', ${imgIndex})" id="option-${index}-${imgIndex}">
+                                <img src="${img}" alt="Cover ${imgIndex + 1}" onerror="this.parentElement.innerHTML='<div class=\'placeholder\'>Image ${imgIndex + 1}</div>'">
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div class="selected-display" id="selected-${index}">
+                        No image selected
+                    </div>
+                `;
+                container.appendChild(videoItem);
+            });
+        }
+
+        function selectImage(videoIndex, imagePath, imgIndex) {
+            selectedImages[videoIndex] = imagePath;
+            
+            // Update the selected image display
+            const selector = document.getElementById(`selected-${videoIndex}`);
+            selector.textContent = `Selected: ${imagePath.split('/').pop()}`;
+            
+            // Update visual selection
+            const imageGrid = document.getElementById(`images-${videoIndex}`);
+            const options = imageGrid.querySelectorAll('.image-option');
+            options.forEach((option, index) => {
+                option.classList.toggle('selected', index === imgIndex);
+            });
+        }
+
+        function saveMatches() {
+            if (Object.keys(selectedImages).length === 0) {
+                alert('Please select at least one image before saving!');
+                return;
+            }
+            
+            console.log('Selected Images:', selectedImages);
+            
+            // Create the updated video data
+            const updatedVideoData = videoData.map((video, index) => ({
+                ...video,
+                cover: selectedImages[index] || '🎬'
+            }));
+            
+            // Display the results
+            let resultText = '✅ Matches saved!\n\n';
+            Object.entries(selectedImages).forEach(([index, image]) => {
+                const videoTitle = videoData[parseInt(index)].title.substring(0, 50);
+                const imageName = image.split('/').pop();
+                resultText += `Video ${parseInt(index) + 1}: ${videoTitle}... → ${imageName}\n`;
+            });
+            
+            alert(resultText);
+            
+            // Copy to clipboard
+            const jsonData = JSON.stringify(updatedVideoData, null, 2);
+            navigator.clipboard.writeText(jsonData).then(() => {
+                alert('📋 Video data copied to clipboard! Send this to me and I\'ll update your website.');
+            }).catch(() => {
+                // Fallback for browsers that don't support clipboard API
+                const textArea = document.createElement('textarea');
+                textArea.value = jsonData;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                alert('📋 Video data copied to clipboard! Send this to me and I\'ll update your website.');
+            });
+        }
+
+        // Load videos when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            loadVideos();
+        });
+    </script>
+</body>
+</html>
