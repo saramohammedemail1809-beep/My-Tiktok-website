@@ -737,7 +737,11 @@ function setupThemeToggle() {
     }
     
     if (themeToggle) {
-        themeToggle.addEventListener('click', function() {
+        // Add multiple event listeners for better mobile compatibility
+        const toggleTheme = function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
             // Toggle between dark and light themes
             currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
             
@@ -751,6 +755,27 @@ function setupThemeToggle() {
             
             // Save theme preference
             localStorage.setItem('theme', currentTheme);
+            
+            // Force a small delay to ensure the change is processed
+            setTimeout(() => {
+                document.documentElement.setAttribute('data-theme', currentTheme);
+            }, 10);
+        };
+        
+        // Add multiple event listeners for better compatibility
+        themeToggle.addEventListener('click', toggleTheme);
+        themeToggle.addEventListener('touchend', toggleTheme);
+        themeToggle.addEventListener('touchstart', function(e) {
+            e.preventDefault();
+        });
+        
+        // Add visual feedback for mobile
+        themeToggle.addEventListener('touchstart', function() {
+            this.style.transform = 'scale(0.95)';
+        });
+        
+        themeToggle.addEventListener('touchend', function() {
+            this.style.transform = 'scale(1)';
         });
     }
 }
