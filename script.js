@@ -480,6 +480,9 @@ function initializeWebsite() {
     // Setup pagination
     setupPagination();
     
+    // Setup theme toggle
+    setupThemeToggle();
+    
     console.log('Website initialized successfully!');
 }
 
@@ -716,6 +719,39 @@ function updatePagination() {
     
     if (nextButton) {
         nextButton.disabled = currentPage === totalPages;
+    }
+}
+
+// Function to setup theme toggle
+function setupThemeToggle() {
+    const themeToggle = document.getElementById('theme-toggle');
+    const themeIcon = themeToggle?.querySelector('.theme-icon');
+    
+    // Get saved theme or default to dark
+    let currentTheme = localStorage.getItem('theme') || 'dark';
+    document.documentElement.setAttribute('data-theme', currentTheme);
+    
+    // Update icon based on current theme
+    if (themeIcon) {
+        themeIcon.textContent = currentTheme === 'dark' ? '🌙' : '☀️';
+    }
+    
+    if (themeToggle) {
+        themeToggle.addEventListener('click', function() {
+            // Toggle between dark and light themes
+            currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            
+            // Apply theme
+            document.documentElement.setAttribute('data-theme', currentTheme);
+            
+            // Update icon
+            if (themeIcon) {
+                themeIcon.textContent = currentTheme === 'dark' ? '🌙' : '☀️';
+            }
+            
+            // Save theme preference
+            localStorage.setItem('theme', currentTheme);
+        });
     }
 }
 
